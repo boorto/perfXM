@@ -50,7 +50,7 @@ export const PlanManager: React.FC = () => {
 
   // --- Execution Logic (Simulation) ---
   useEffect(() => {
-    let interval: NodeJS.Timeout;
+    let interval: ReturnType<typeof setInterval>;
     if (activeView === 'EXECUTE' && isRunning) {
        interval = setInterval(() => {
            // Simulating metrics
