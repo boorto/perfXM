@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Terminal, PauseCircle, StopCircle, RefreshCw } from 'lucide-react';
-import { ExecutionLog } from '../types';
+import type{ ExecutionLog } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 
 export const ExecutionMonitor: React.FC = () => {

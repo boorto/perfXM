@@ -1,6 +1,6 @@
 
 import React, { useState, useMemo } from 'react';
-import { Script } from '../types';
+import type{ Script } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useProjects } from '../contexts/ProjectContext';
 import { useScripts } from '../contexts/ScriptContext';

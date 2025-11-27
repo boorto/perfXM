@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useProjects } from '../contexts/ProjectContext';
 import { Folder, Plus, Edit2, Trash2, Search, X, Briefcase, User, Calendar } from 'lucide-react';
-import { Project } from '../types';
+import type{ Project } from '../types';
 
 export const ProjectManager: React.FC = () => {
   const { t } = useLanguage();

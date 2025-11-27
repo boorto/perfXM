@@ -1,4 +1,3 @@
-
 export enum ModuleType {
   DASHBOARD = 'DASHBOARD',
   PROJECTS = 'PROJECTS',

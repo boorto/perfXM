@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Project } from '../types';
+import type{ Project } from '../types';
 
 interface ProjectContextType {
   projects: Project[];

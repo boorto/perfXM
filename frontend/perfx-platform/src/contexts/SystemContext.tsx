@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { User, Role, Organization, ModuleType } from '../types';
+import type{ User, Role, Organization, ModuleType } from '../types';
 
 interface SystemContextType {
   users: User[];

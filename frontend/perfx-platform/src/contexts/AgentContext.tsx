@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Agent } from '../types';
+import type{ Agent } from '../types';
 
 interface AgentContextType {
   agents: Agent[];

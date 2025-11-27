@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useSystem } from '../contexts/SystemContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Plus, Edit2, Trash2, Search, X, User as UserIcon, Mail, Building, Shield } from 'lucide-react';
-import { User } from '../types';
+import type{ User } from '../types';
 
 export const SystemUserManager: React.FC = () => {
   const { t } = useLanguage();

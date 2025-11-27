@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useSystem } from '../contexts/SystemContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Plus, Edit2, Trash2, Shield, X, Check } from 'lucide-react';
-import { Role, ModuleType } from '../types';
+import type{ Role, ModuleType } from '../types';
 
 export const SystemRoleManager: React.FC = () => {
   const { t } = useLanguage();

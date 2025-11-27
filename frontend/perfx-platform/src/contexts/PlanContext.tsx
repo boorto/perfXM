@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { TestPlan } from '../types';
+import type{ TestPlan } from '../types';
 
 interface PlanContextType {
   plans: TestPlan[];

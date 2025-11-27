@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { Agent } from '../types';
+import type{ Agent } from '../types';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useAgents } from '../contexts/AgentContext';
 import { Server, Plus, Edit2, Trash2, Power, Cpu, Activity, Search, X, Network, Crown, HardDrive } from 'lucide-react';

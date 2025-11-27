@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, ReactNode } from 'react';
-import { Script } from '../types';
+import type{ Script } from '../types';
 
 interface ScriptContextType {
   scripts: Script[];

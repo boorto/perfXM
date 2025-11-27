@@ -5,7 +5,7 @@ import { usePlans } from '../contexts/PlanContext';
 import { useProjects } from '../contexts/ProjectContext';
 import { useScripts } from '../contexts/ScriptContext';
 import { useAgents } from '../contexts/AgentContext';
-import { TestPlan, ExecutionLog } from '../types';
+import type{ TestPlan, ExecutionLog } from '../types';
 import { Calendar, Play, Plus, Trash2, Edit2, Check, X, Server, FileCode, Terminal, RefreshCw, StopCircle, PauseCircle, Activity, AlertCircle, ArrowLeft } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 

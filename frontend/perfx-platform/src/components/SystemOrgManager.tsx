@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useSystem } from '../contexts/SystemContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Plus, Edit2, Trash2, Building, X, Calendar } from 'lucide-react';
-import { Organization } from '../types';
+import type{ Organization } from '../types';
 
 export const SystemOrgManager: React.FC = () => {
   const { t } = useLanguage();
