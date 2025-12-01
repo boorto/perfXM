@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PerfX Platform</title>
-    <!-- 引入 Tailwind CSS -->
+    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
       tailwind.config = {
@@ -12,7 +12,7 @@
           extend: {
             colors: {
               slate: {
-                850: '#151f32', 
+                850: '#151f32',
                 900: '#0f172a',
               },
               primary: {
@@ -28,10 +28,8 @@
       }
     </script>
   </head>
-  <body class="bg-slate-950 text-slate-200 antialiased">
+  <body class="bg-slate-950 text-slate-200 antialiased overflow-hidden">
     <div id="root"></div>
-    
-    <!-- 关键修改：指向 src 目录下的 main.tsx -->
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

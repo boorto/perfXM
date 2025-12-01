@@ -26,7 +26,7 @@ export interface Script {
   name: string;
   project: string;
   version: string;
-  content: string; // JMX XML content
+  content: string;
   size: string;
   updatedAt: string;
   description?: string;
@@ -35,7 +35,7 @@ export interface Script {
 export interface Scenario {
   id: string;
   name: string;
-  scripts: string[]; // Script IDs
+  scripts: string[];
   targetRPS: number;
   duration: string;
 }
@@ -43,14 +43,14 @@ export interface Scenario {
 export interface Agent {
   id: string;
   name: string;
-  role: 'MASTER' | 'SLAVE'; // JMeter Role
+  role: 'MASTER' | 'SLAVE';
   ip: string;
-  port: number; // JMeter/RMI Port
+  port: number;
   status: 'Idle' | 'Busy' | 'Offline';
   region: string;
   cpuUsage: number;
   memoryUsage: number;
-  maxThreads?: number; // Max concurrent threads/users
+  maxThreads?: number;
   tags?: string[];
 }
 
@@ -58,14 +58,14 @@ export interface TestPlan {
   id: string;
   name: string;
   description: string;
-  projectId: string; // Linked Project
-  scriptIds: string[]; // Selected Scripts
-  agentIds: string[]; // Selected Agents
+  projectId: string;
+  scriptIds: string[];
+  agentIds: string[];
   status: 'Draft' | 'Running' | 'Completed' | 'Failed';
   config: {
     threads: number;
-    rampUp: number; // seconds
-    duration: number; // seconds
+    rampUp: number;
+    duration: number;
     loops: number;
   };
   lastRun?: string;
@@ -84,7 +84,6 @@ export interface MetricPoint {
   failures: number;
 }
 
-// System Config Types
 export interface Organization {
   id: string;
   name: string;
@@ -97,8 +96,8 @@ export interface Role {
   id: string;
   name: string;
   description: string;
-  permissions: ModuleType[]; // List of modules this role can access
-  isSystem?: boolean; // System roles cannot be deleted
+  permissions: ModuleType[];
+  isSystem?: boolean;
 }
 
 export interface User {

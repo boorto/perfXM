@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
 import { useSystem } from '../contexts/SystemContext';
 import { useLanguage } from '../contexts/LanguageContext';
 import { Plus, Edit2, Trash2, Shield, X, Check } from 'lucide-react';
-import type{ Role, ModuleType } from '../types';
+import { ModuleType } from '../types'; // Import Value (Enum)
+import type { Role } from '../types'; // Import Type (Interface)
 
 export const SystemRoleManager: React.FC = () => {
   const { t } = useLanguage();
@@ -17,6 +17,7 @@ export const SystemRoleManager: React.FC = () => {
     permissions: [] as ModuleType[]
   });
 
+  // Use ModuleType safely here
   const allModules = Object.values(ModuleType);
 
   const handleOpenModal = (role?: Role) => {

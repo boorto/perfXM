@@ -1,5 +1,6 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type { Language } from '../types'; // Fix: Explicitly import as type
+import React, { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
+import type { Language } from '../types';
 import { translations } from '../utils/translations';
 
 interface LanguageContextType {

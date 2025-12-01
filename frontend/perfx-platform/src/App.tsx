@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
 import { Dashboard } from './components/Dashboard';
@@ -10,7 +9,7 @@ import { ConfigManager } from './components/ConfigManager';
 import { PlanManager } from './components/PlanManager';
 import { LoginPage } from './components/LoginPage';
 import { ModuleType } from './types';
-import { CloudLightning, Database, Settings, Globe } from 'lucide-react';
+import { CloudLightning, Database, Globe } from 'lucide-react';
 import { LanguageProvider, useLanguage } from './contexts/LanguageContext';
 import { ProjectProvider } from './contexts/ProjectContext';
 import { SystemProvider } from './contexts/SystemContext';
@@ -20,7 +19,7 @@ import { PlanProvider } from './contexts/PlanContext';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
 
 const PlaceholderModule = ({ title, icon: Icon }: { title: string, icon: any }) => (
-  <div className="h-[calc(100vh-6rem)] flex flex-col items-center justify-center text-slate-600 animate-in fade-in">
+  <div className="h-full flex flex-col items-center justify-center text-slate-600 animate-in fade-in">
     <div className="bg-slate-900 p-8 rounded-full mb-6 border border-slate-800">
       <Icon size={64} strokeWidth={1} className="text-slate-700" />
     </div>
@@ -65,7 +64,6 @@ const AppContent: React.FC = () => {
     }
   };
 
-  // Mapping module to display title
   const moduleTitles: Record<ModuleType, string> = {
     [ModuleType.DASHBOARD]: t.nav.dashboard,
     [ModuleType.PROJECTS]: t.nav.projects,
@@ -79,11 +77,10 @@ const AppContent: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-950 text-slate-200 font-sans selection:bg-blue-500/30">
+    <div className="flex h-screen w-full bg-slate-950 text-slate-200 font-sans overflow-hidden">
       <Sidebar activeModule={activeModule} setActiveModule={setActiveModule} />
       
-      <main className="flex-1 ml-64 p-8 overflow-hidden h-screen overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
-        {/* Header Breadcrumb / Actions */}
+      <main className="flex-1 ml-64 p-8 h-full overflow-y-auto scrollbar-thin scrollbar-thumb-slate-800 scrollbar-track-transparent">
         <header className="mb-8 flex justify-between items-center">
           <div>
             <h1 className="text-2xl font-bold text-white tracking-tight">
@@ -107,7 +104,9 @@ const AppContent: React.FC = () => {
           </div>
         </header>
 
-        {renderContent()}
+        <div className="h-[calc(100vh-10rem)]">
+            {renderContent()}
+        </div>
       </main>
     </div>
   );

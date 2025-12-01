@@ -1,6 +1,7 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type{ User, Role, Organization, ModuleType } from '../types';
+import React, { createContext, useContext, useState} from 'react';
+import type { ReactNode } from 'react';
+import { ModuleType } from '../types'; // Import Value
+import type { User, Role, Organization } from '../types'; // Import Types
 
 interface SystemContextType {
   users: User[];
@@ -33,7 +34,7 @@ export const SystemProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       name: 'Administrator', 
       description: 'Full system access', 
       isSystem: true,
-      permissions: Object.values(ModuleType) 
+      permissions: Object.values(ModuleType) // This usage requires ModuleType value
     },
     { 
       id: '2', 

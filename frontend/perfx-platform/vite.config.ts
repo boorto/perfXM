@@ -5,7 +5,6 @@ import react from '@vitejs/plugin-react'
 export default defineConfig({
   plugins: [react()],
   define: {
-    // This is needed to prevent "process is not defined" error in aiService.ts
     'process.env': {}
   }
 })

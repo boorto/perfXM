@@ -1,6 +1,6 @@
-
-import React, { createContext, useContext, useState, ReactNode } from 'react';
-import type{ Script } from '../types';
+import React, { createContext, useContext, useState } from 'react';
+import type { ReactNode } from 'react';
+import type { Script } from '../types';
 
 interface ScriptContextType {
   scripts: Script[];
@@ -19,7 +19,7 @@ export const ScriptProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       version: 'v1.2.0', 
       size: '24 KB', 
       updatedAt: '2023-10-27 14:30', 
-      content: '<?xml version="1.0" encoding="UTF-8"?>\n<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">\n  <hashTree>\n    <TestPlan guiclass="TestPlanGui" testclass="TestPlan" testname="Order Checkout" enabled="true">\n      <!-- Mock JMX Content -->\n    </TestPlan>\n  </hashTree>\n</jmeterTestPlan>' 
+      content: '<!-- Mock JMX Content -->' 
     },
     { 
       id: '2', 
@@ -28,7 +28,7 @@ export const ScriptProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       version: 'v1.0.5', 
       size: '12 KB', 
       updatedAt: '2023-10-25 09:15', 
-      content: '<?xml version="1.0" encoding="UTF-8"?>\n<jmeterTestPlan version="1.2" properties="5.0" jmeter="5.5">\n ... \n</jmeterTestPlan>' 
+      content: '<!-- Mock JMX Content -->' 
     },
     { 
       id: '3', 
@@ -37,7 +37,7 @@ export const ScriptProvider: React.FC<{ children: ReactNode }> = ({ children }) 
       version: 'v2.0.1', 
       size: '45 KB', 
       updatedAt: '2023-10-20 11:42', 
-      content: '...' 
+      content: '<!-- Mock JMX Content -->' 
     },
   ]);
 
