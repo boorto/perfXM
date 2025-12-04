@@ -5,17 +5,11 @@
 from datetime import datetime, timedelta
 from typing import Optional, Union
 from jose import JWTError, jwt
-import bcrypt
 from passlib.context import CryptContext
-import os
+from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
 
 # 密码加密上下文
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
-
-# JWT 配置
-SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
 
 def get_password_hash(password: str) -> str:
     """生成密码哈希"""
@@ -138,3 +132,14 @@ def has_all_permissions(user_permissions: list, required_permissions: list) -> b
 if __name__ == '__main__':
     print(get_password_hash("username123hahhahhahhahhahahhahahaah"))
     print(verify_password("username123hahhahhahhahhahahhahahaah","$2b$12$0PMC3sZRNSpUsEmLxvhwq.8R4EHV09oOh/43FzGwZ1NE0bA.aO/cy"))
+    user_data = {
+    "sub": "user@example.com",
+    "user_id": 123,
+    "role": "admin"
+}
+    print(create_access_token(user_data))
+    print(verify_token(create_access_token(user_data)))
+    print(create_refresh_token(user_data))
+    print(verify_refresh_token(create_refresh_token(user_data)))
+    print(datetime.utcnow())
+    print(get_role_permissions("superadmin"))

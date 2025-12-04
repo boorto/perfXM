@@ -3,6 +3,7 @@ from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
 from contextlib import asynccontextmanager
 
+from config import TORTOISE_ORM, APP_NAME, APP_VERSION, DEBUG, IS_INIT_SCRIPT
 from api.projects import Project
 from api.scripts import Script
 from api.test_plan import Test_plan
@@ -10,35 +11,17 @@ from api.user_system import User_system
 from api.slave_config import Slave_config
 import uvicorn
 
-# 数据库配置
-TORTOISE_ORM = {
-    "connections": {
-        "default": "sqlite://db.sqlite3"  # 可以改为 MySQL/PostgreSQL
-    },
-    "apps": {
-        "models": {
-            "models": ["models", "aerich.models"],
-            "default_connection": "default",
-        },
-    },
-}
+app = FastAPI(
+    title=APP_NAME,
+    version=APP_VERSION,
+    debug=DEBUG
+)
 
-@asynccontextmanager
-async def lifespan(app: FastAPI):
-    # 启动时初始化数据库
-    await Tortoise.init(config=TORTOISE_ORM)
-    await Tortoise.generate_schemas()
-    yield
-    # 关闭时清理连接
-    await Tortoise.close_connections()
-
-app = FastAPI(lifespan=lifespan)
-
-# 注册 Tortoise ORM
+# 注册 Tortoise ORM（使用迁移模式，不自动生成 schemas）
 register_tortoise(
     app,
     config=TORTOISE_ORM,
-    generate_schemas=True,
+    generate_schemas=False,  # 关闭自动生成，使用 aerich 迁移
     add_exception_handlers=True,
 )
 

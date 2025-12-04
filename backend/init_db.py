@@ -12,45 +12,47 @@ project_root = Path(__file__).parent
 sys.path.insert(0, str(project_root))
 
 from tortoise import Tortoise
+from config import TORTOISE_ORM
 from models import UserInfo, Role, Organize, UserOrgRole
 from security import get_password_hash
 
-TORTOISE_ORM = {
-    "connections": {
-        "default": "sqlite://db.sqlite3"
-    },
-    "apps": {
-        "models": {
-            "models": ["models", "aerich.models"],
-            "default_connection": "default",
-        },
-    },
-}
-
 async def init_database():
-    """初始化数据库"""
-    # 连接数据库
-    await Tortoise.init(config=TORTOISE_ORM)
+    """初始化数据库基础数据"""
+    print("开始初始化数据库基础数据...")
 
-    # 生成表结构
-    await Tortoise.generate_schemas()
-    print("✅ 数据库表结构生成完成")
+    try:
+        # 1. 先初始化数据库连接
+        await Tortoise.init(config=TORTOISE_ORM)
+        print("数据库连接成功")
 
-    # 检查是否已有数据
+        # 2. 测试表结构是否存在
+        # 如果表不存在，这里会抛出异常
+        await UserInfo.all().count()
+        print("数据库表结构检查完成")
+    except Exception as e:
+        print(f"❌ 数据库表结构检查失败: {e}")
+        print("请先运行以下命令:")
+        print("1. aerich init -t config.TORTOISE_ORM")
+        print("2. aerich init-db")
+        print("3. aerich upgrade")
+        await Tortoise.close_connections()
+        return False
+
+    # 3. 检查是否已有数据
     user_count = await UserInfo.all().count()
     if user_count > 0:
-        print(f"⚠️  数据库已有 {user_count} 个用户，跳过初始化")
+        print(f" 数据库已有 {user_count} 个用户，跳过初始化")
         await Tortoise.close_connections()
-        return
+        return True
 
     # 检查角色是否已存在
     role_count = await Role.all().count()
     if role_count > 0:
-        print(f"⚠️  数据库已有 {role_count} 个角色，跳过初始化")
+        print(f"⚠  数据库已有 {role_count} 个角色，跳过初始化")
         await Tortoise.close_connections()
-        return
+        return True
 
-    print("🚀 开始初始化基础数据...")
+    print(" 开始初始化基础数据...")
 
     # 创建默认角色
     roles_data = [
@@ -120,7 +122,7 @@ async def init_database():
     for role_data in roles_data:
         role = await Role.create(**role_data)
         created_roles.append(role)
-        print(f"✅ 创建角色: {role.name}")
+        print(f"创建角色: {role.name}")
 
     # 创建默认组织
     org_data = [
@@ -154,7 +156,7 @@ async def init_database():
     for org in org_data:
         org_obj = await Organize.create(**org)
         created_orgs.append(org_obj)
-        print(f"✅ 创建组织: {org['name']}")
+        print(f" 创建组织: {org['name']}")
 
     # 设置组织关系
     if len(created_orgs) >= 4:
@@ -167,7 +169,7 @@ async def init_database():
         await created_orgs[2].save()
         await created_orgs[3].save()
 
-        print("✅ 设置组织层级关系")
+        print(" 设置组织层级关系")
 
     # 创建超级管理员用户
     admin_user_data = {
@@ -180,7 +182,7 @@ async def init_database():
     }
 
     admin_user = await UserInfo.create(**admin_user_data)
-    print(f"✅ 创建管理员用户: {admin_user.username}")
+    print(f" 创建管理员用户: {admin_user.username}")
 
     # 给管理员分配角色
     if len(created_roles) > 0 and len(created_orgs) > 0:
@@ -190,7 +192,7 @@ async def init_database():
             organization=created_orgs[0],  # 总公司
             role=created_roles[0]  # 超级管理员
         )
-        print(f"✅ 给用户 {admin_user.username} 分配角色: {created_roles[0].name}")
+        print(f" 给用户 {admin_user.username} 分配角色: {created_roles[0].name}")
 
     # 创建测试用户
     test_user_data = [
@@ -222,7 +224,7 @@ async def init_database():
 
     for i, user_data in enumerate(test_user_data):
         user = await UserInfo.create(**user_data)
-        print(f"✅ 创建测试用户: {user.username}")
+        print(f" 创建测试用户: {user.username}")
 
         # 分配角色
         if i + 1 < len(created_roles) and i + 1 < len(created_orgs):
@@ -231,21 +233,26 @@ async def init_database():
                 organization=created_orgs[i + 1],  # 不同部门
                 role=created_roles[i + 1]  # 不同角色
             )
-            print(f"✅ 给用户 {user.username} 分配角色: {created_roles[i + 1].name}")
+            print(f" 给用户 {user.username} 分配角色: {created_roles[i + 1].name}")
 
-    print("\n🎉 数据库初始化完成!")
-    print("\n📋 默认账号信息:")
+    print("\n 数据库初始化完成!")
+    print("\n 默认账号信息:")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
     print("管理员: admin / admin123")
     print("项目经理: pm_test / pm123")
     print("测试工程师: qa_test / qa123")
     print("开发者: dev_test / dev123")
     print("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━")
-    print("⚠️  生产环境请及时修改默认密码!")
+    print("  生产环境请及时修改默认密码!")
 
     await Tortoise.close_connections()
+    return True
 
 if __name__ == "__main__":
     print("🔧 开始初始化数据库...")
-    asyncio.run(init_database())
-    print("✅ 数据库初始化完成!")
+    success = asyncio.run(init_database())
+    if success:
+        print("✅ 数据库初始化完成!")
+    else:
+        print("❌ 数据库初始化失败!")
+        sys.exit(1)
