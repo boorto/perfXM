@@ -23,7 +23,7 @@ TORTOISE_ORM = {
 # JWT 配置
 SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-here-change-in-production")
 ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30
+ACCESS_TOKEN_EXPIRE_MINUTES = 300
 
 # 应用配置
 APP_NAME = "PerfX Platform"

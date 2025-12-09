@@ -1,14 +1,18 @@
 from fastapi import FastAPI
 from tortoise import Tortoise
 from tortoise.contrib.fastapi import register_tortoise
+from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from config import TORTOISE_ORM, APP_NAME, APP_VERSION, DEBUG, IS_INIT_SCRIPT
-from api.projects import Project
-from api.scripts import Script
-from api.test_plan import Test_plan
+
+# 导入路由
+from api.projects import Projects
+from api.scripts import Scripts
+from api.test_plan import TestPlans
 from api.user_system import User_system
-from api.slave_config import Slave_config
+from api.slave_config import Slaves
+from api.organizations import Organizations
 import uvicorn
 
 app = FastAPI(
@@ -26,11 +30,12 @@ register_tortoise(
 )
 
 # 注册路由
-app.include_router(Project, prefix="/api/projects", tags=["Projects"])
-app.include_router(Script, prefix="/api/scripts", tags=["Scripts"])
-app.include_router(Test_plan, prefix="/api/test-plans", tags=["Test Plans"])
-app.include_router(User_system, prefix="/api/users", tags=["User Management"])
-app.include_router(Slave_config, prefix="/api/slaves", tags=["Slave Configurations"])
+app.include_router(Projects, prefix="/api/projects", tags=["项目管理"])
+app.include_router(Scripts, prefix="/api/scripts", tags=["脚本管理"])
+app.include_router(TestPlans, prefix="/api/test-plans", tags=["测试计划"])
+app.include_router(User_system, prefix="/api/users", tags=["用户管理系统"])
+app.include_router(Slaves, prefix="/api/slaves", tags=["负载机配置"])
+app.include_router(Organizations, prefix="/api/organizations", tags=["组织管理系统"])
 
 
 if __name__ == '__main__':

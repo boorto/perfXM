@@ -46,83 +46,82 @@ async def init_database():
         return True
 
     # 检查角色是否已存在
-    role_count = await Role.all().count()
-    if role_count > 0:
-        print(f"⚠  数据库已有 {role_count} 个角色，跳过初始化")
-        await Tortoise.close_connections()
-        return True
+    existing_roles = await Role.all()
+    if existing_roles:
+        print(f"⚠  数据库已有 {len(existing_roles)} 个角色，跳过角色初始化")
+        created_roles = existing_roles  # 使用现有角色
+    else:
+        print(" 开始初始化基础数据...")
 
-    print(" 开始初始化基础数据...")
+        # 创建默认角色
+        roles_data = [
+            {
+                "name": "超级管理员",
+                "description": "系统超级管理员，拥有所有权限",
+                "permissions": [
+                    "user:create", "user:read", "user:update", "user:delete",
+                    "project:create", "project:read", "project:update", "project:delete",
+                    "role:create", "role:read", "role:update", "role:delete",
+                    "organize:create", "organize:read", "organize:update", "organize:delete",
+                    "script:create", "script:read", "script:update", "script:delete",
+                    "test_plan:create", "test_plan:read", "test_plan:update", "test_plan:delete",
+                    "slave:create", "slave:read", "slave:update", "slave:delete",
+                    "system:manage", "system:monitor"
+                ],
+                "is_system": True
+            },
+            {
+                "name": "项目经理",
+                "description": "项目经理，管理项目和团队",
+                "permissions": [
+                    "project:create", "project:read", "project:update",
+                    "user:read", "user:update",
+                    "script:create", "script:read", "script:update",
+                    "test_plan:create", "test_plan:read", "test_plan:update",
+                    "slave:read", "slave:update"
+                ],
+                "is_system": True
+            },
+            {
+                "name": "测试工程师",
+                "description": "测试工程师，执行测试计划",
+                "permissions": [
+                    "project:read",
+                    "script:read", "script:update",
+                    "test_plan:create", "test_plan:read", "test_plan:update",
+                    "slave:read"
+                ],
+                "is_system": True
+            },
+            {
+                "name": "开发者",
+                "description": "开发者，编写和上传脚本",
+                "permissions": [
+                    "project:read",
+                    "script:create", "script:read", "script:update",
+                    "test_plan:read", "test_plan:update",
+                    "slave:read"
+                ],
+                "is_system": True
+            },
+            {
+                "name": "观察者",
+                "description": "观察者，只读权限",
+                "permissions": [
+                    "project:read",
+                    "script:read",
+                    "test_plan:read",
+                    "slave:read"
+                ],
+                "is_system": True
+            }
+        ]
 
-    # 创建默认角色
-    roles_data = [
-        {
-            "name": "超级管理员",
-            "description": "系统超级管理员，拥有所有权限",
-            "permissions": [
-                "user:create", "user:read", "user:update", "user:delete",
-                "project:create", "project:read", "project:update", "project:delete",
-                "role:create", "role:read", "role:update", "role:delete",
-                "organize:create", "organize:read", "organize:update", "organize:delete",
-                "script:create", "script:read", "script:update", "script:delete",
-                "test_plan:create", "test_plan:read", "test_plan:update", "test_plan:delete",
-                "slave:create", "slave:read", "slave:update", "slave:delete",
-                "system:manage", "system:monitor"
-            ],
-            "is_system": True
-        },
-        {
-            "name": "项目经理",
-            "description": "项目经理，管理项目和团队",
-            "permissions": [
-                "project:create", "project:read", "project:update",
-                "user:read", "user:update",
-                "script:create", "script:read", "script:update",
-                "test_plan:create", "test_plan:read", "test_plan:update",
-                "slave:read", "slave:update"
-            ],
-            "is_system": True
-        },
-        {
-            "name": "测试工程师",
-            "description": "测试工程师，执行测试计划",
-            "permissions": [
-                "project:read",
-                "script:read", "script:update",
-                "test_plan:create", "test_plan:read", "test_plan:update",
-                "slave:read"
-            ],
-            "is_system": True
-        },
-        {
-            "name": "开发者",
-            "description": "开发者，编写和上传脚本",
-            "permissions": [
-                "project:read",
-                "script:create", "script:read", "script:update",
-                "test_plan:read", "test_plan:update",
-                "slave:read"
-            ],
-            "is_system": True
-        },
-        {
-            "name": "观察者",
-            "description": "观察者，只读权限",
-            "permissions": [
-                "project:read",
-                "script:read",
-                "test_plan:read",
-                "slave:read"
-            ],
-            "is_system": True
-        }
-    ]
-
-    created_roles = []
-    for role_data in roles_data:
-        role = await Role.create(**role_data)
-        created_roles.append(role)
-        print(f"创建角色: {role.name}")
+        created_roles = []
+        for role_data in roles_data:
+            role = await Role.create(**role_data)
+            created_roles.append(role)
+            print(f"创建角色: {role.name}")
 
     # 创建默认组织
     org_data = [

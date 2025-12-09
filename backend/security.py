@@ -2,14 +2,23 @@
 安全认证模块
 包含密码哈希、JWT 令牌等功能
 """
+import warnings
 from datetime import datetime, timedelta
 from typing import Optional, Union
 from jose import JWTError, jwt
 from passlib.context import CryptContext
+from fastapi import Depends, HTTPException, status
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from config import SECRET_KEY, ALGORITHM, ACCESS_TOKEN_EXPIRE_MINUTES
+
+# 抑制 passlib 的 bcrypt 版本警告
+# warnings.filterwarnings("ignore", message=".*trapped.*error reading bcrypt version.*")
 
 # 密码加密上下文
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+
+# HTTP Bearer 认证方案
+security = HTTPBearer()
 
 def get_password_hash(password: str) -> str:
     """生成密码哈希"""
@@ -60,6 +69,63 @@ def verify_refresh_token(token: str) -> Optional[dict]:
         return payload
     except JWTError:
         return None
+
+# FastAPI 依赖注入函数
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    """从 JWT token 获取当前用户"""
+    from models import UserInfo
+    
+    token = credentials.credentials
+    credentials_exception = HTTPException(
+        status_code=status.HTTP_401_UNAUTHORIZED,
+        detail="无效的认证凭据",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    
+    payload = verify_token(token)
+    if payload is None:
+        raise credentials_exception
+    
+    user_id: int = payload.get("user_id")
+    if user_id is None:
+        raise credentials_exception
+    
+    user = await UserInfo.get_or_none(id=user_id)
+    if user is None:
+        raise credentials_exception
+    
+    return user
+
+async def get_current_active_user(current_user = Depends(get_current_user)):
+    """获取当前激活用户"""
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="用户未激活")
+    return current_user
+
+async def check_permissions(required_permissions: list, current_user = Depends(get_current_active_user)):
+    """检查用户权限"""
+    from models import UserOrgRole
+    
+    # 超级管理员拥有所有权限
+    if current_user.is_superuser:
+        return current_user
+    
+    # 获取用户的所有角色权限
+    user_roles = await UserOrgRole.filter(user=current_user, is_active=True).prefetch_related('role')
+    user_permissions = []
+    for user_role in user_roles:
+        if user_role.role and user_role.role.permissions:
+            user_permissions.extend(user_role.role.permissions)
+    
+    # 检查是否有所需权限
+    has_permission = any(perm in user_permissions for perm in required_permissions)
+    if not has_permission:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail=f"权限不足，需要以下权限之一: {', '.join(required_permissions)}"
+        )
+    
+    return current_user
 
 # 权限检查装饰器
 def require_permissions(permissions: Union[str, list]):
