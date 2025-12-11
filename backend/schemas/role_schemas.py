@@ -8,6 +8,7 @@ class RoleBase(BaseModel):
     description: Optional[str] = Field(None, description="角色描述")
     permissions: List[str] = Field(default_factory=list, description="权限列表")
     is_system: bool = Field(default=False, description="是否系统角色")
+    org_id: Optional[int] = Field(None, description="所属组织ID")
 
 class RoleCreate(RoleBase):
     """创建角色"""
@@ -17,6 +18,7 @@ class RoleUpdate(BaseModel):
     name: Optional[str] = Field(None, min_length=1, max_length=50, description="角色名称")
     description: Optional[str] = Field(None, description="角色描述")
     permissions: Optional[List[str]] = Field(None, description="权限列表")
+    org_id: Optional[int] = Field(None, description="所属组织ID")
 
 class RoleResponse(RoleBase):
     """角色响应"""

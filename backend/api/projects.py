@@ -95,22 +95,24 @@ async def list_projects(
     total = await query.count()
     
     # 分页查询
-    offset = (page - 1) * page_size
-    projects = await query.offset(offset).limit(page_size).prefetch_related('manager_id')
+    projects = await query.offset((page - 1) * page_size).limit(page_size).prefetch_related('manager_id')
     
     # 构建响应数据
     items = []
     for project in projects:
-        project_data = {
+        # 获取经理信息
+        manager = await project.manager_id
+        
+        items.append({
             "id": project.id,
             "name": project.name,
             "description": project.description,
             "status": project.status,
-            "manager_id": project.manager_id_id if hasattr(project, 'manager_id_id') else None,
+            "manager_id": project.manager_id_id,
+            "creator_name": manager.username if manager else None,  # 添加创建者用户名
             "created_at": project.created_at,
             "updated_at": project.updated_at
-        }
-        items.append(project_data)
+        })
     
     # 计算总页数
     total_pages = (total + page_size - 1) // page_size
@@ -220,6 +222,7 @@ async def create_project(
             "description": project.description,
             "status": project.status,
             "manager_id": manager.id,
+            "creator_name": manager.username,  # 添加创建者用户名
             "created_at": project.created_at,
             "updated_at": project.updated_at
         }

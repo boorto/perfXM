@@ -4,8 +4,11 @@
 """
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, File, UploadFile, Form
+from fastapi.responses import FileResponse
 from tortoise.exceptions import DoesNotExist
-
+from pathlib import Path
+from datetime import datetime
+import os
 from models import Script, UserInfo, Project, ProjectMember
 from schemas.script_schemas import (
     ScriptCreate,
@@ -178,6 +181,32 @@ async def get_script_detail(
     }
 
 
+@Scripts.post("/{script_id}/download", summary="下载脚本文件")
+async def download_script(
+    script_id: int,
+    current_user: UserInfo = Depends(get_current_active_user)
+):
+    """下载脚本文件"""
+    
+    # 检查脚本存在性和访问权限
+    script = await check_script_access(script_id, current_user)
+    
+    # 检查文件是否存在
+    file_path = Path(script.file_path)
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="脚本文件不存在")
+    
+    # 使用脚本名称 + 文件扩展名（去掉时间戳）
+    # 例如: zhiwen.jmx 而不是 zhiwen_20251210_123456.jmx
+    file_extension = file_path.suffix  # 例如 .jmx
+    download_filename = f"{script.name}{file_extension}"
+    
+    # 返回文件
+    return FileResponse(
+        path=str(file_path),
+        filename=download_filename,
+        media_type='application/octet-stream'
+    )
 
 
 @Scripts.post("", response_model=ResponseModel, summary="创建脚本（支持文件上传）")
@@ -210,10 +239,6 @@ async def create_script(
         author_id = current_user.id
     
     # 创建上传目录
-    import os
-    from pathlib import Path
-    from datetime import datetime
-    
     upload_dir = Path("uploads/scripts")
     upload_dir.mkdir(parents=True, exist_ok=True)
     

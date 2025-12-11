@@ -3,7 +3,7 @@
 提供用户登录、注册、信息管理、角色管理等功能
 """
 from typing import Optional
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Body
 from pydantic import BaseModel, Field
 from tortoise.exceptions import DoesNotExist
 
@@ -159,9 +159,27 @@ async def list_users(
     offset = (page - 1) * page_size
     users = await query.offset(offset).limit(page_size)
     
+    # 获取用户的角色信息
+    user_ids = [u.id for u in users]
+    user_roles = await UserOrgRole.filter(
+        user_id__in=user_ids,
+        is_active=True
+    ).prefetch_related('role')
+    
+    # 构建用户-角色映射（取第一个角色）
+    user_role_map = {}
+    for ur in user_roles:
+        if ur.user_id not in user_role_map:
+            user_role_map[ur.user_id] = {
+                'org_id': ur.organization_id,
+                'role_id': ur.role_id,
+                'role_name': ur.role.name
+            }
+    
     # 构建响应数据
     items = []
     for user in users:
+        role_info = user_role_map.get(user.id, {})
         user_data = {
             "id": user.id,
             "username": user.username,
@@ -170,12 +188,14 @@ async def list_users(
             "phone": user.phone,
             "is_active": user.is_active,
             "is_superuser": user.is_superuser,
+            "org_id": role_info.get('org_id'),
+            "role_id": role_info.get('role_id'),
+            "role_name": role_info.get('role_name'),
             "last_login": user.last_login,
             "created_at": user.created_at,
             "updated_at": user.updated_at
         }
         items.append(user_data)
-    
     # 计算总页数
     total_pages = (total + page_size - 1) // page_size
     
@@ -211,6 +231,10 @@ async def get_user_detail(
     user_org_roles = await UserOrgRole.filter(user_id=user_id, is_active=True).prefetch_related('organization', 'role')
     
     organizations = []
+    org_id = None
+    role_id = None
+    role_name = None
+    
     for uor in user_org_roles:
         organizations.append({
             "organization_id": uor.organization.id,
@@ -219,6 +243,11 @@ async def get_user_detail(
             "role_name": uor.role.name,
             "joined_at": uor.joined_at
         })
+        # 取第一个作为主要组织和角色
+        if org_id is None:
+            org_id = uor.organization_id
+            role_id = uor.role_id
+            role_name = uor.role.name
     
     user_data = {
         "id": user.id,
@@ -229,6 +258,9 @@ async def get_user_detail(
         "avatar": user.avatar,
         "is_active": user.is_active,
         "is_superuser": user.is_superuser,
+        "org_id": org_id,
+        "role_id": role_id,
+        "role_name": role_name,
         "last_login": user.last_login,
         "created_at": user.created_at,
         "updated_at": user.updated_at,
@@ -270,6 +302,23 @@ async def create_user(
         is_superuser=user_data.is_superuser
     )
     
+    # 如果提供了组织和角色，创建关联
+    role_name = None
+    org_id = user_data.org_id
+    role_id = user_data.role_id
+    
+    if org_id and role_id:
+        await UserOrgRole.create(
+            user_id=user.id,
+            organization_id=org_id,
+            role_id=role_id,
+            is_active=True
+        )
+        # 获取角色名称
+        role = await Role.get_or_none(id=role_id)
+        if role:
+            role_name = role.name
+    
     return {
         "code": 200,
         "message": "操作成功",
@@ -279,6 +328,8 @@ async def create_user(
             "email": user.email,
             "real_name": user.real_name,
             "is_active": user.is_active,
+            "role_id": role_id,
+            "role_name": role_name,
             "created_at": user.created_at
         }
     }
@@ -343,194 +394,5 @@ async def delete_user(
     return {
         "code": 200,
         "message": "用户删除成功",
-        "data": None
-    }
-
-
-# ==================== 角色管理 ====================
-
-@User_system.get("/system/roles", response_model=ResponseModel, summary="获取角色列表")
-async def list_roles(
-    page: int = Query(1, ge=1, description="页码"),
-    page_size: int = Query(20, ge=1, le=100, description="每页数量"),
-    name: Optional[str] = Query(None, description="角色名称筛选"),
-    current_user: UserInfo = Depends(get_current_active_user)
-):
-    """获取角色列表（分页）"""
-    # 检查权限
-    await check_permissions(["role:read"], current_user)
-    
-    # 构建查询条件
-    query = Role.filter(is_deleted=False)
-    
-    if name:
-        query = query.filter(name__icontains=name)
-    
-    # 计算总数
-    total = await query.count()
-    
-    # 分页查询
-    offset = (page - 1) * page_size
-    roles = await query.offset(offset).limit(page_size)
-    
-    # 构建响应数据
-    items = []
-    for role in roles:
-        role_data = {
-            "id": role.id,
-            "name": role.name,
-            "description": role.description,
-            "permissions": role.permissions,
-            "is_system": role.is_system,
-            "created_at": role.created_at,
-            "updated_at": role.updated_at
-        }
-        items.append(role_data)
-    
-    # 计算总页数
-    total_pages = (total + page_size - 1) // page_size
-    
-    return {
-        "code": 200,
-        "message": "success",
-        "data": {
-            "items": items,
-            "total": total,
-            "page": page,
-            "size": page_size,
-            "pages": total_pages,
-            "has_next": page < total_pages,
-            "has_prev": page > 1
-        }
-    }
-
-
-@User_system.get("/system/roles/{role_id}", response_model=ResponseModel, summary="获取角色详情")
-async def get_role_detail(
-    role_id: int,
-    current_user: UserInfo = Depends(get_current_active_user)
-):
-    """获取角色详情"""
-    # 检查权限
-    await check_permissions(["role:read"], current_user)
-    
-    role = await Role.get_or_none(id=role_id, is_deleted=False)
-    if not role:
-        raise HTTPException(status_code=404, detail="角色不存在")
-    
-    role_data = {
-        "id": role.id,
-        "name": role.name,
-        "description": role.description,
-        "permissions": role.permissions,
-        "is_system": role.is_system,
-        "created_at": role.created_at,
-        "updated_at": role.updated_at
-    }
-    
-    return {
-        "code": 200,
-        "message": "success",
-        "data": role_data
-    }
-
-
-@User_system.post("/system/roles", response_model=ResponseModel, summary="创建角色")
-async def create_role(
-    role_data: RoleCreate,
-    current_user: UserInfo = Depends(get_current_active_user)
-):
-    """创建角色"""
-    # 检查权限
-    await check_permissions(["role:create"], current_user)
-    
-    # 检查角色名称是否已存在
-    if await Role.filter(name=role_data.name, is_deleted=False).exists():
-        raise HTTPException(status_code=400, detail="角色名称已存在")
-    
-    # 创建角色
-    role = await Role.create(**role_data.model_dump())
-    
-    return {
-        "code": 200,
-        "message": "操作成功",
-        "data": {
-            "id": role.id,
-            "name": role.name,
-            "description": role.description,
-            "permissions": role.permissions,
-            "is_system": role.is_system,
-            "created_at": role.created_at
-        }
-    }
-
-
-@User_system.put("/system/roles/{role_id}", response_model=ResponseModel, summary="更新角色")
-async def update_role(
-    role_id: int,
-    role_data: RoleUpdate,
-    current_user: UserInfo = Depends(get_current_active_user)
-):
-    """更新角色"""
-    # 检查权限
-    await check_permissions(["role:update"], current_user)
-    
-    # 获取角色
-    role = await Role.get_or_none(id=role_id, is_deleted=False)
-    if not role:
-        raise HTTPException(status_code=404, detail="角色不存在")
-    
-    # 系统角色不能修改
-    if role.is_system:
-        raise HTTPException(status_code=400, detail="系统角色不能修改")
-    
-    # 更新角色
-    update_data = role_data.model_dump(exclude_unset=True)
-    await role.update_from_dict(update_data).save()
-    await role.refresh_from_db()
-    
-    return {
-        "code": 200,
-        "message": "角色更新成功",
-        "data": {
-            "id": role.id,
-            "name": role.name,
-            "description": role.description,
-            "permissions": role.permissions,
-            "updated_at": role.updated_at
-        }
-    }
-
-
-@User_system.delete("/system/roles/{role_id}", response_model=ResponseModel, summary="删除角色")
-async def delete_role(
-    role_id: int,
-    current_user: UserInfo = Depends(get_current_active_user)
-):
-    """删除角色（软删除）"""
-    # 检查权限
-    await check_permissions(["role:delete"], current_user)
-    
-    # 获取角色
-    role = await Role.get_or_none(id=role_id, is_deleted=False)
-    if not role:
-        raise HTTPException(status_code=404, detail="角色不存在")
-    
-    # 系统角色不能删除
-    if role.is_system:
-        raise HTTPException(status_code=400, detail="系统角色不能删除")
-    
-    # 检查是否有用户使用该角色
-    user_count = await UserOrgRole.filter(role_id=role_id, is_active=True).count()
-    if user_count > 0:
-        raise HTTPException(status_code=400, detail=f"该角色下还有 {user_count} 个用户，无法删除")
-    
-    # 软删除
-    role.is_deleted = True
-    await role.save()
-    
-    return {
-        "code": 200,
-        "message": "角色删除成功",
         "data": None
     }

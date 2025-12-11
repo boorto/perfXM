@@ -9,6 +9,7 @@ class Role(Model):
     description = fields.TextField(null=True, description="角色描述")
     permissions = fields.JSONField(default=[], description="角色权限列表")
     is_system = fields.BooleanField(default=False, description="是否系统角色")
+    org_id = fields.IntField(null=True, description="所属组织ID")
     created_at = fields.DatetimeField(auto_now_add=True, description="创建时间")
     updated_at = fields.DatetimeField(auto_now=True, description="更新时间")
     is_deleted = fields.BooleanField(default=False, description="删除标志")

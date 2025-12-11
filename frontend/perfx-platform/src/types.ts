@@ -55,20 +55,23 @@ export interface Agent {
 }
 
 export interface TestPlan {
-  id: string;
+  id: number;
   name: string;
-  description: string;
-  projectId: string;
-  scriptIds: string[];
-  agentIds: string[];
-  status: 'Draft' | 'Running' | 'Completed' | 'Failed';
-  config: {
-    threads: number;
-    rampUp: number;
-    duration: number;
-    loops: number;
-  };
-  lastRun?: string;
+  description?: string;
+  project_id: number;
+  creator_id: number;
+  status: string; // draft, ready, running, completed, failed
+  priority: string; // low, medium, high
+  scheduled_start?: string;
+  scheduled_end?: string;
+  actual_start?: string;
+  actual_end?: string;
+  total_cases: number;
+  passed_cases: number;
+  failed_cases: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
 }
 
 export interface ExecutionLog {

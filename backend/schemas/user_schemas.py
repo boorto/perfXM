@@ -14,6 +14,8 @@ class UserCreate(UserBase):
     """创建用户"""
     password: str = Field(..., min_length=6, max_length=128, description="密码")
     is_superuser: bool = Field(default=False, description="是否超级用户")
+    org_id: Optional[int] = Field(None, description="组织ID")
+    role_id: Optional[int] = Field(None, description="角色ID")
 
 class UserUpdate(BaseModel):
     """更新用户"""
